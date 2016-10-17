@@ -4,24 +4,23 @@
 \subsection{Theorie}
 \subsubsection{iSCSI}
 \textbf{Überblick:}\\
-\textit{Internet Small Computer Systems Interface} ist eine Erweiterung des \textit{SCSI} Standards. Es erlaubt Clients Daten über TCP in ein \textit{Storage Area Network} (NAS) zu speichern, als wären diese direkt mit der Festplatte verbunden. Damit ist es möglich, mehrere Festplatten von unterschiedlichen Standorten zu einer virtuellen Festplatte zusammenzufassen, welche für mehrere Clients erreichbar ist. Es lassen sich große Distanzen überwinden, da sich iSCSI zwischen Router, host-to-switch und storage-array-to-storage-array implementieren lässt. 
+\textit{Internet Small Computer Systems Interface} ist eine Erweiterung des \textit{SCSI} Standards. Es erlaubt Clients Daten über TCP in ein \textit{Storage Area Network} (SAN) zu speichern, als wären diese direkt mit der Festplatte verbunden. Damit ist es möglich mehrere Festplatten von unterschiedlichen Standorten zu einer virtuellen Festplatte zusammenzufassen, welche für mehrere Clients erreichbar ist. Es lassen sich große Distanzen überwinden, da sich iSCSI zwischen Router, host-to-switch und storage-array-to-storage-array implementieren lässt. 
 
 \textbf{Funktionsweise:}\\
-iSCSI überträgt block-level Data zwischen iSCSI initiator und den Festplatten, auch iSCSI targets genannt. Der iSCSI initiator kapselt die SCSI Kommandos und Daten in Pakete für den TCP/IP Layer, welche dann über das Netzwerk mittels point-to-point Verbindung übertragen werden. Das iSCSI Protokoll trennt dann die SCSI Kommandos von den Daten, so dass es für den Client aussieht, als wäre er direkt lokal mit der Festplatte verbunden.
-
+iSCSI überträgt block-level Data zwischen dem iSCSI initiator und den Festplatten, auch iSCSI targets genannt. Der iSCSI initiator kapselt die SCSI Kommandos und Daten in Pakete für den TCP/IP Layer, welche dann über das Netzwerk mittels point-to-point Verbindung übertragen werden. Das iSCSI Protokoll trennt dann die SCSI Kommandos von den Daten, so dass es für den Client aussieht, als wäre er lokal mit der Festplatte verbunden.
 
 \textbf{Vorteile:}\\
 Der größte Vorteil von iSCSI gegenüber anderen Möglichkeiten, wie FCIP(Fiber Channel over IP), ist, dass keine teuren und komplexen Switches bzw. Router wie für FCIP benötigt werden. Das macht es billiger und einfacher zu verwalten. Weiteres ist die iSCSI Variante auch weit flexibler als andere Möglichkeiten. 
-\\
+\cite{iscsi}
 
 \subsubsection{OCFS2}
-\textit{Oracle Cluster File System} ist ein verteiltes Dateisystem, welches von der von Oracle Corporation entwickelt und unter der GNU General Public License veröffentlicht wurde. Das Dateisystem ist also eine Open Source Variante, welche leistungsstarke Performance und hohe Verfügbarkeit bietet. Es verwendet die gleiche Semantik wie lokale Dateisysteme und lässt sich mit jeder beliebigen Anwendung verwenden. 
+\textit{Oracle Cluster File System} ist ein verteiltes Dateisystem, welches von der Oracle Corporation entwickelt und unter der GNU General Public License veröffentlicht wurde. Das Dateisystem ist also eine Open Source Variante, welche leistungsstarke Performance und hohe Verfügbarkeit bietet. Es verwendet die gleiche Semantik wie lokale Dateisysteme und lässt sich mit jeder beliebigen Anwendung verwenden. \cite{ocfs2}
 
 \subsection{iSCSI Initiator}
 \subsubsection{Basics}
 Da openfiler bereits zur Verfügung gestellt wurde, musste keine NAS Appliance installiert und konfiguriert werden.
 
-Die restliche Vorgehensweise entspricht genau der Aufgabenstellung. Zuerst wurde das Ubuntu Package \texttt{open-iscsi} installiert. Nachdem in der Datei \texttt{/etc/iscsi/iscsi.conf} die Authentifizierungsmethode auf CHAP (Challenge Handshake Authentication Protocol) gesetzt und die Anmeldedaten konfiguriert wurden, konnte auch schon die Liste der verfügbaren Targets ausgegeben werden.
+Die restliche Vorgehensweise entspricht genau der Aufgabenstellung. Zuerst wurde das Ubuntu Package \texttt{open-iscsi} installiert. Nachdem in der Datei \texttt{/etc/iscsi/iscsi.conf} die Authentifizierungsmethode auf CHAP (Challenge Handshake Authentication Protocol) gesetzt und die Anmeldedaten konfiguriert wurden, konnte auch schon die Liste der verfügbaren Targets ausgegeben werden.\clearpage
 
 \begin{lstlisting}[style=bash, caption=Verfügbare Targets]
 daniel@daniubuntu:~$ sudo iscsiadm -m discovery -t sendtargets -p 10.0.106.81
@@ -32,6 +31,8 @@ daniel@daniubuntu:~$ sudo iscsiadm -m discovery -t sendtargets -p 10.0.106.81
 10.0.106.81:3260,1 iqn.2016-09.syt:tsn.data0
 \end{lstlisting}
 Die Option \texttt{-m} legt den Operation-Mode als \texttt{discovery} fest. Im \texttt{discovery} Modus wird mit \texttt{-t} der Discovery-Typ auf \texttt{sendtargets} gesetzt. Mit \texttt{-p} wird die Zieladresse festgelegt.
+
+
 Danach wurde das \texttt{data0} Target als ``lokale'' Festplatte registriert:
 \begin{lstlisting}[style=bash, caption=Target ``lokal'' registrieren]
 daniel@daniubuntu:~$ sudo iscsiadm -m node -T iqn.2016-09.syt:tsn.data0 -p 10.0.106.81 --login
@@ -64,16 +65,17 @@ Zuerst müssen die Dienste \texttt{o2cb} und \texttt{OCFS2} in den Autostart hin
 \texttt{sudo update-rc.d <service> defaults}
 
 erreicht. \cite{updaterc}
+
 Danach wurde mittels
 
 \texttt{sudo dpkg-reconfigure ocfs2-tools}
 
-eingestellt, dass ein OCFS2-Cluster zur Startzeit gestartet wird.
+eingestellt, dass ein OCFS2-Cluster zur Startzeit gestartet wird.\clearpage
 
 \begin{figure}[!h]
 	\begin{center}
 		\includegraphics[width=0.7\linewidth]{images/boot.png}
-		\caption{Autostart der OCFS2-Tools}
+		\caption{Autostart des OCFS2 Clusters}
 		\label{boot}
 	\end{center}
 \end{figure}
@@ -96,42 +98,43 @@ installiert.\clearpage
 Nun wurde mit der Datei \texttt{/etc/ocfs2/cluster.conf} ein Cluster für 4 Nodes konfiguriert. Diese Konfiguration muss bei jeder Node (Client) vorhanden sein.
 \begin{lstlisting}[style=bash, caption=\texttt{/etc/ocfs2/cluster.conf}]
 node:
-name = ubuntu
-cluster = ocfs2
-number = 1
-ip_address = 10.0.104.10
-ip_port = 7777
+	name = ubuntu
+	cluster = ocfs2
+	number = 1
+	ip_address = 10.0.104.10
+	ip_port = 7777
 
 node:
-name = ubuntu2
-cluster = ocfs2
-number = 2
-ip_address = 10.0.106.93
-ip_port = 7777
+	name = ubuntu2
+	cluster = ocfs2
+	number = 2
+	ip_address = 10.0.106.93
+	ip_port = 7777
 
 node:
-name = ubuntuWeber
-cluster = ocfs2
-number = 3
-ip_address = 10.0.106.90
-ip_port = 7777
+	name = ubuntuWeber
+	cluster = ocfs2
+	number = 3
+	ip_address = 10.0.106.90
+	ip_port = 7777
 
 node:
-name = daniubuntu
-cluster = ocfs2
-number = 4
-ip_address = 10.0.106.100
-ip_port = 7777
+	name = daniubuntu
+	cluster = ocfs2
+	number = 4
+	ip_address = 10.0.106.100
+	ip_port = 7777
 
 cluster:
-name = ocfs2
-heartbeat_mode = local
-node_count = 4
+	name = ocfs2
+	heartbeat_mode = local
+	node_count = 4
 
 \end{lstlisting}
 Für jede Node werden Hostname, zugehöriger Cluster, Nummerierung und notwendigen Adressdaten spezifiziert.
 
-Zusätzlich ist der \texttt{heartbeat\_mode} beim Cluster interessant. Dieser Modus definiert, wie die Nodes den gemeinsamen Zugriff auf die geteilten Ressourcen koordinieren und den jeweiligen Status überwachen. Im \texttt{local} Modus starte jede Node einen Heartbeat Thread, sobald ein OCFS2 Device eingehängt wird. Werden mehrere Devices auf einer Node eingehängt, bedeutet dies einen großen CPU-Overhead. Weiters kann auch ein Netzwerk bzw. ein I/O Overhead enstehen. Dies passiert wenn viele Nodes oder sogar mehrere Cluster vorhanden sind.   Im \texttt{global} Modus müssen sich nicht die Nodes um die Heartbeat-Funktion kümmern. Der Hearbeat startet automatisch mit dem Cluster. \cite{heartbeat}
+Zusätzlich ist der \texttt{heartbeat\_mode} beim Cluster interessant. Dieser Modus definiert, wie die Nodes den gemeinsamen Zugriff auf die geteilten Ressourcen koordinieren und den jeweiligen Status überwachen. Im \texttt{local} Modus startet jede Node einen Heartbeat Thread, sobald ein OCFS2 Device eingehängt wird. Werden mehrere Devices auf einer Node eingehängt, bedeutet dies einen großen CPU-Overhead. Weiters kann auch ein Netzwerk bzw. ein I/O Overhead enstehen. Dies passiert wenn viele Nodes oder sogar mehrere Cluster vorhanden sind. Im \texttt{global} Modus müssen sich nicht die Nodes um die Heartbeat-Funktion kümmern. Der Hearbeat startet automatisch mit dem Cluster. \cite{heartbeat}
+\clearpage
 \subsubsection{Starten des Clusters}
 Danach werden die Module des Diensts \texttt{o2cb} geladen:
 
@@ -144,7 +147,7 @@ Um diese dann auch Online zu schalten wird
 ausgeführt. \cite{ocfs2faq}
 \subsubsection{Formatieren des Volumes}
 Bevor die anderen Clients auf das Volume zugreifen können, muss ein Client dieses formatieren. 
-Mit dem \texttt{mkfs.ocfs2} Befehl kann ein Volume formatiert werden. Mit \texttt{-N} wird die Anzahl der Nodes definiert, die sich mit dem Filesystem verbinden können. Diese kann im Nachhinein erhöht, jedoch nicht verringert werden. Mit -L gibt man dem Filesystem einen Namen.
+Mit dem \texttt{mkfs.ocfs2} Befehl kann ein Volume formatiert werden. Mit \texttt{-N} wird die Anzahl der Nodes definiert, die sich mit dem Filesystem verbinden können. Diese kann im Nachhinein erhöht, jedoch nicht verringert werden. Mit \texttt{-L} gibt man dem Filesystem einen Namen.
 
 \texttt{mkfs.ocfs2 /dev/sdb -N 4 -L "test123"}
 
@@ -164,7 +167,7 @@ Zuerst wurde mit Client 1 eine Testdatei erstellt. Danach hat Client 2 die Datei
 		\label{edit}
 	\end{center}
 \end{figure}\
-
+\clearpage
 Versucht nun Client 1 ebenfalls die Datei zu editieren erhält man folgende Fehlermeldung:
 \begin{figure}[!h]
 	\begin{center}
@@ -175,4 +178,5 @@ Versucht nun Client 1 ebenfalls die Datei zu editieren erhält man folgende Fehl
 \end{figure}\
 
 Im Endeffekt ist immer die letzte Aktion gültig und überschreibt die vorherigen Änderungen.
-Dies ist jedoch nur möglich, da nano ein Journal führt und selbst die Datei lockt. Würde eine andere Applikation, welche diese Funktionalitäten nicht implementiert, eine Datei gleichzeitig von 2 verschiedenen Clients bearbeiten, würde diese korrupt werden. 
+
+Dies ist jedoch nur möglich, da nano ein Journal führt und selbst die Datei lockt. Würde eine andere Applikation, welche diese Funktionalitäten nicht implementiert, eine Datei gleichzeitig von 2 verschiedenen Clients bearbeiten, würde diese korrupt werden.
