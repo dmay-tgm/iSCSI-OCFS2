@@ -1,35 +1,56 @@
 %!TEX root=../document.tex
 
 \section{Einführung}
-Dieses Protokoll-Template soll helfen den Laborübungsteil entsprechend dokumentieren zu können. Diese Vorlage ist in \LaTeX  verfasst.
+Diese Übung zeigt die Anwendung von iSCSI und OCFS2.
 
 \subsection{Ziele}
-Hier werden die zu erwerbenden Kompetenzen und deren Deskriptoren beschrieben. Diese werden von den unterweisenden Lehrkräften vorgestellt.
-
-Dies kann natürlich auch durch eine Aufzählung erfolgen:
-
-\begin{itemize}
-	\item \textbf{Lorem ipsum:} dolor sit amet, consetetur sadipscing elitr
-	\item sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat
-	\item ut labore et dolore magna aliquyam erat, sed diam voluptua
-\end{itemize}
-
+Das Ziel dieser Übung ist einen iSCSI-Initiator zu konfigurieren. Ebenfalls soll ein OCFS2 Cluster konfiguriert werden. 
 
 \subsection{Voraussetzungen}
-Welche Informationen sind notwendig um die Laborübung reibungslos durchführen zu können? Hier werden alle Requirements der Lehrkraft detailliert beschrieben und mit Quellen untermauert.
+\begin{itemize}
+	\item Grundlagen iSCSI
+	\item Grundlagen der Netzwerktechnik
+	\item Grundlagen Linux
 
-Hier zum Beispiel die Architektur der \textit{Common Object-Request-Broker Architecture}:
-\begin{figure}[!h]
-	\begin{center}
-		\includegraphics[width=0.5\linewidth]{images/corba.jpg}
-		\caption{Common Object-Request-Broker Architecture \cite{tanenbaum2007verteilte}}
-		\label{broker}
-	\end{center}
-\end{figure}
-
-
+\end{itemize}
 \subsection{Aufgabenstellung}
-Hier wird dann die konkrete Aufgabenstellung der Laborübung definiert.
+\subsubsection{Basics}
+Installieren und Konfigurieren Sie eine NAS Appliance, welche Block Devices (Festplatten) über iSCSI im Netzwerk freigeben kann (z.B. openfiler, FreeNAS), falls diese nicht bereits für die Übung zur Verfügung gestellt wurde (je nach Gruppe/Zeitplan).
 
-Nun kommt ein Seitenumbruch, um eine klare Trennung der Schülerarbeit zu bestimmen.
+Installieren Sie auf einem Linux-Client einen iSCSI Initiator (bei Debian/Ubuntu im Paket open-iscsi) und konfigurieren Sie diesen entsprechend: zumindest die Authentifizierung muss in der Datei /etc/iscsi/iscsi.conf konfiguriert werden (danach muss open-iscsi neu gestartet werden):
+
+\texttt{node.session.auth.authmethod = CHAP}
+
+\texttt{node.session.auth.username = test}
+
+\texttt{node.session.auth.password = test}
+
+Im Anschluss können Sie den iSCSI Client (Initiator) mit dem iSCSI Server (Target) verbinden. Im ersten Schritt soll der Server (die IP-Adresse muss logischerweise angepasst werden) nach den von ihm angebotenen Targets (spezifischen Block-Devices) befragt werden:
+
+\texttt{iscsiadm -m discovery -t sendtargets -p 10.5.104.33}
+
+Dieser Befehl sollte eine Liste an Targets ausgeben, wie z.B.:
+
+\texttt{iqn.2006-01.com.openfiler:tsn.target01}
+
+\texttt{iqn.2006-01.com.openfiler:tsn.target02}
+
+Danach kann man ein spezifisches Target im Client als "lokale" Festplatte registrieren (bzw. mit \texttt{--logout} wieder entfernen):
+
+\texttt{iscsiadm -m node -T iqn.2006-01.com.openfiler:tsn.target01 -p 15.104.33 --login}
+
+Bei Erfolg sieht man in der Kernel-Console (\texttt{dmesg}) das neue Block-Dive wie etwa \texttt{sdb}.
+
+\subsubsection{Selbstständige zu lösende Aufgaben}
+\begin{itemize}
+	\item Das iSCSI Target soll automatisch beim booten des Clients/Initiators verbunden werden
+	\item Installieren Sie \texttt{ocfs2} auf mindestens 3 Computern (die auf das Block-Devices per iSCSI verbunden sind)
+	\item Konfigurieren Sie einen OCFS2 Cluster für diese 3 Computer (Nodes), z.B. über die Datei \texttt{/etc/ocfs2/cluster.conf}
+	\item Formatieren Sie das gemeinsame iSCSI Block Device im OCFS2 Dateisystem (\texttt{mkfs.ocfs2}) - dies muss nur auf einem Computer durchgeführt werden, da es sich ja um ein Cluster-Dateisystem handelt
+	\item Überprüfen Sie, wie sich das Dateisystem bei gemeinsamen Zugriff auf eine Datei verhält
+	\item Dokumentieren Sie Ihre Durchführung und Ihre Ergebnisse
+\end{itemize}
+Die Arbeit ist in Gruppen zu 3-4 Teilnehmern möglich. Jeder Teilnehmer muss den iSCSI-Initiator und OCFS2 konfiguriert haben.
+
+Abgabe des Protokolls (1x/Gruppe) als pdf.
 \clearpage
