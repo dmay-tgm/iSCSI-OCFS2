@@ -3,6 +3,7 @@
 \section{Ergebnisse}
 \subsection{Theorie}
 \subsection{iSCSI Initiator}
+\subsubsection{Basics}
 Da openfiler bereits zur Verfügung gestellt wurde, musste keine NAS Appliance installiert und konfiguriert werden.
 
 Die restliche Vorgehensweise entspricht genau der Aufgabenstellung. Zuerst wurde das Ubuntu Package \texttt{open-iscsi} installiert. Nachdem in der Datei \texttt{/etc/iscsi/iscsi.conf} die Authentifizierungsmethode auf CHAP (Challenge Handshake Authentication Protocol) gesetzt und die Anmeldedaten konfiguriert wurden, konnte auch schon die Liste der verfügbaren Targets ausgegeben werden.
@@ -16,7 +17,6 @@ daniel@daniubuntu:~$ sudo iscsiadm -m discovery -t sendtargets -p 10.0.106.81
 10.0.106.81:3260,1 iqn.2016-09.syt:tsn.data0
 \end{lstlisting}
 Die Option \texttt{-m} legt den Operation-Mode als \texttt{discovery} fest. Im \texttt{discovery} Modus wird mit \texttt{-t} der Discovery-Typ auf \texttt{sendtargets} gesetzt. Mit \texttt{-p} wird die Zieladresse festgelegt.
-
 Danach wurde das \texttt{data0} Target als ``lokale'' Festplatte registriert:
 \begin{lstlisting}[style=bash, caption=Target ``lokal'' registrieren]
 daniel@daniubuntu:~$ sudo iscsiadm -m node -T iqn.2016-09.syt:tsn.data0 -p 10.0.106.81 --login
@@ -34,7 +34,100 @@ In der Kernel Console sieht man nun das neue Block Device:
 [ 1008.430186] sd 33:0:0:0: [sdb] Write cache: disabled, read cache: disabled, doesn't support DPO or FUA
 \end{lstlisting}
 
+Auch mit \texttt{fdisk -l} kann man sehen, dass das neue Block Device eingebunden wurde:
+\begin{lstlisting}[style=bash, caption=\texttt{fdisk -l}]
+Disk /dev/sdb: 512 MiB, 536870912 bytes, 1048576 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+\end{lstlisting}
+\subsubsection{iSCSI Verbindung beim Booten}
+Diese Aufgabe wurde erst erledigt, nachdem OCFS2 fertig konfiguriert wurde.
+
+Zuerst müssen die Dienste \texttt{o2cb} und \texttt{OCFS2} in den Autostart hinzugefügt werden. Dies wurde mit 
+
+\texttt{sudo update-rc.d <service> defaults}
+
+erreicht. \cite{updaterc}
+Danach wurde mittels
+
+\texttt{sudo dpkg-reconfigure ocfs2-tools}
+
+eingestellt, dass ein OCFS2-Cluster zur Startzeit gestartet wird.
+
+\begin{figure}[!h]
+	\begin{center}
+		\includegraphics[width=0.7\linewidth]{images/boot.png}
+		\caption{Autostart der OCFS2-Tools}
+		\label{boot}
+	\end{center}
+\end{figure}
+
+Letztendlich muss nur noch der Eintrag
+
+\texttt{/dev/sdb	/tmp\_mount	ocfs2	\_netdev		0	0}
+
+in die Datei \texttt{/etc/fstab}, die für das automatisierte Einhängen von Partitionen verantwortlich ist, geschrieben werden. \cite{ocfs2faq}
+
+Die erste Spalte beschreibt das einzuhängende Dateisystem. Die zweite Spalte definiert den Mountpoint, dass heißt wo das Dateisystem eingehängt wird. Die dritte Spalte spezifiziert die Art des Dateisystems. Danach folgt die Option \texttt{\_netdev}, welche spezifiziert, dass es sich um einen Netzwerkspeicher handelt und deswegen so lange mit dem Einhängen gewartet wird, bis eine Netzwerkverbindung zur Verfügung steht. Die erste Zahl steht für Sicherungseinstellungen mittels \texttt{dump}. In diesem Fall bedeutet 0 keine Sicherung. Die zweite Zahl gibt an, ob und in welcher Reihenfolge die Partition beim Systemstart in die regelmäßigen Dateisystemprüfungen einbezogen wird. 0 bedeutet hier wieder keine Prüfung. \cite{ubuntuusersfstab}
 \subsection{Client Konfiguration}
+Zuerst wurden verschiedenste \texttt{OCFS2} Tools mittels
+
+\texttt{sudo apt-get install ocfs2*}
+
+installiert.\clearpage
+Nun wurde mit der Datei \texttt{/etc/ocfs2/cluster.conf} ein Cluster für 4 Nodes konfiguriert. Diese Konfiguration muss bei jeder Node (Client) vorhanden sein.
+\begin{lstlisting}[style=bash, caption=\texttt{/etc/ocfs2/cluster.conf}]
+node:
+name = ubuntu
+cluster = ocfs2
+number = 1
+ip_address = 10.0.104.10
+ip_port = 7777
+
+node:
+name = ubuntu2
+cluster = ocfs2
+number = 2
+ip_address = 10.0.106.93
+ip_port = 7777
+
+node:
+name = ubuntuWeber
+cluster = ocfs2
+number = 3
+ip_address = 10.0.106.90
+ip_port = 7777
+
+node:
+name = daniubuntu
+cluster = ocfs2
+number = 4
+ip_address = 10.0.106.100
+ip_port = 7777
+
+cluster:
+name = ocfs2
+heartbeat_mode = local
+node_count = 4
+\end{lstlisting}
+Für jede Node werden Hostname, zugehöriger Cluster, Nummerierung und notwendigen Adressdaten spezifiziert.
+
+Zusätzlich ist der \texttt{heartbeat\_mode} beim Cluster interessant. Dieser Modus definiert, wie die Nodes den gemeinsamen Zugriff auf geteilte Ressourcen koordinieren und die jeweiligen Status überwachen. Im \texttt{local} Modus starte jede Node einen Heartbeat Thread, wenn ein OCFS2 Device eingehängt wird. Werden mehrere Devices auf einer Node eingehängt bedeutet dies einen großen CPU-Overhead. Im \texttt{global} Modus müssen sich nicht die Nodes um die Heartbeat-Funktion kümmern. Der Hearbeat startet automatisch mit dem Cluster. \cite{heartbeat}
+
+Danach werden die Module des Diensts \texttt{o2cb} geladen:
+
+\texttt{sudo service o2cb load}
+
+Um diese dann auch Online zu schalten wird
+
+\texttt{sudo service o2cb online}
+
+ausgeführt. \cite{ocfs2faq}
+
+Nachdem das Dateisystem initialisiert wurde, kann das OCFS2 Volumen eingehängt werden. Dies geschieht mit dem \texttt{mount} Befehl, der mit \texttt{-t} die Art des Dateisystems beschreibt. Danach wird spezifiziert was wo eingehängt wird. \cite{ocfs2faq}
+
+\texttt{sudo mount -t ocfs2 /dev/sdb /tmp\_mount}
 \subsection{Server Konfiguration}
 \subsection{Testing}
 Zuerst wurde mit Client 1 eine Testdatei erstellt. Danach hat Client 2 die Datei geöffnet und bearbeitet.
