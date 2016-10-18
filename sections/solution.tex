@@ -4,18 +4,18 @@
 \subsection{Theorie}
 \subsubsection{iSCSI}
 \textbf{Überblick:}\\
-\textit{Internet Small Computer Systems Interface} ist eine Erweiterung des \textit{SCSI} Standards. Es erlaubt Clients Daten über TCP in ein \textit{Storage Area Network} (NAS) zu speichern, als wäre es direkt mit der Festplatte verbunden. Damit ist es möglich, mehrere Festplatten von unterschiedlichen Standorten zu einer virtuellen Festplatte zusammenzufassen, welche für mehreren Clients erreichbar ist. Es lassen sich große Distanzen überwinden, da sich iSCSI zwischen Router, host-to-switch, storage-array-to-storage-array implementieren lässt. 
+\textit{Internet Small Computer Systems Interface} ist eine Erweiterung des \textit{SCSI} Standards. Es erlaubt Clients Daten über TCP in ein \textit{Storage Area Network} (NAS) zu speichern, als wären diese direkt mit der Festplatte verbunden. Damit ist es möglich, mehrere Festplatten von unterschiedlichen Standorten zu einer virtuellen Festplatte zusammenzufassen, welche für mehrere Clients erreichbar ist. Es lassen sich große Distanzen überwinden, da sich iSCSI zwischen Router, host-to-switch und storage-array-to-storage-array implementieren lässt. 
 
 \textbf{Funktionsweise:}\\
-iSCSI überträgt block-level Data zwischen iSCSI initiator und den Festplatten, auch iSCSI targets genannt. Der iSCSI initiator kapselt die SCSI Kommandos und Daten in Pakete für den TCP/IP Layer. Diese Pakete werden dann über das Netzwerk mittels point-to-point Verbindung übertragen. Das iSCSI Protokoll trennt dann die SCSI Kommandos von den Daten, so dass es für den Client aussieht, als wäre er direkt lokal mit der Festplatte verbunden.
+iSCSI überträgt block-level Data zwischen iSCSI initiator und den Festplatten, auch iSCSI targets genannt. Der iSCSI initiator kapselt die SCSI Kommandos und Daten in Pakete für den TCP/IP Layer, welche dann über das Netzwerk mittels point-to-point Verbindung übertragen werden. Das iSCSI Protokoll trennt dann die SCSI Kommandos von den Daten, so dass es für den Client aussieht, als wäre er direkt lokal mit der Festplatte verbunden.
 
 
 \textbf{Vorteile:}\\
-Der größte Vorteil von iSCSI gegenüber anderen Möglichkeiten, wie FCIP(Fiber Channel over IP), ist, dass keine teuren und komplexen Switches bzw. Router wie für FCIP benötigt werden. Das macht es billiger und einfacher zu verwalten. Weiteres ist iSCSI Variante auch weit flexibler als andere Möglichkeiten. 
+Der größte Vorteil von iSCSI gegenüber anderen Möglichkeiten, wie FCIP(Fiber Channel over IP), ist, dass keine teuren und komplexen Switches bzw. Router wie für FCIP benötigt werden. Das macht es billiger und einfacher zu verwalten. Weiteres ist die iSCSI Variante auch weit flexibler als andere Möglichkeiten. 
 \\
 
 \subsubsection{OCFS2}
-\textit{Oracle Cluster File System} ist ein verteiltes Dateisystem entwickelt von Oracle Corporation veröffentlicht unter der GNU General Public License. Das Dateisystem ist also eine open source Variante, welche leistungsstarke Performance und hohe Verfügbarkeit bietet. Es verwendet die gleiche Semantik wie lokale Dateisysteme und lässt sich mit jeder beliebigen Anwendung verwenden. 
+\textit{Oracle Cluster File System} ist ein verteiltes Dateisystem, welches von der von Oracle Corporation entwickelt und unter der GNU General Public License veröffentlicht wurde. Das Dateisystem ist also eine Open Source Variante, welche leistungsstarke Performance und hohe Verfügbarkeit bietet. Es verwendet die gleiche Semantik wie lokale Dateisysteme und lässt sich mit jeder beliebigen Anwendung verwenden. 
 
 \subsection{iSCSI Initiator}
 \subsubsection{Basics}
@@ -131,7 +131,7 @@ node_count = 4
 \end{lstlisting}
 Für jede Node werden Hostname, zugehöriger Cluster, Nummerierung und notwendigen Adressdaten spezifiziert.
 
-Zusätzlich ist der \texttt{heartbeat\_mode} beim Cluster interessant. Dieser Modus definiert, wie die Nodes den gemeinsamen Zugriff auf geteilte Ressourcen koordinieren und die jeweiligen Status überwachen. Im \texttt{local} Modus starte jede Node einen Heartbeat Thread, wenn ein OCFS2 Device eingehängt wird. Werden mehrere Devices auf einer Node eingehängt bedeutet dies einen großen CPU-Overhead. Weiters kann auch ein Netzwerk, sowie I/O Overhead enstehen. Dies passiert wenn viele Nodes oder sogar mehrere Cluster vorhanden sind.   Im \texttt{global} Modus müssen sich nicht die Nodes um die Heartbeat-Funktion kümmern. Der Hearbeat startet automatisch mit dem Cluster. \cite{heartbeat}
+Zusätzlich ist der \texttt{heartbeat\_mode} beim Cluster interessant. Dieser Modus definiert, wie die Nodes den gemeinsamen Zugriff auf die geteilten Ressourcen koordinieren und den jeweiligen Status überwachen. Im \texttt{local} Modus starte jede Node einen Heartbeat Thread, sobald ein OCFS2 Device eingehängt wird. Werden mehrere Devices auf einer Node eingehängt, bedeutet dies einen großen CPU-Overhead. Weiters kann auch ein Netzwerk bzw. ein I/O Overhead enstehen. Dies passiert wenn viele Nodes oder sogar mehrere Cluster vorhanden sind.   Im \texttt{global} Modus müssen sich nicht die Nodes um die Heartbeat-Funktion kümmern. Der Hearbeat startet automatisch mit dem Cluster. \cite{heartbeat}
 \subsubsection{Starten des Clusters}
 Danach werden die Module des Diensts \texttt{o2cb} geladen:
 
@@ -143,12 +143,12 @@ Um diese dann auch Online zu schalten wird
 
 ausgeführt. \cite{ocfs2faq}
 \subsubsection{Formatieren des Volumes}
-Bevor die anderen Clients auf das Volume zugreifen können muss ein Client dieses formatieren. 
-mit dem \texttt{mkfs.ocfs2} Befehl kann ein Volume formatiert werden. mit \texttt{-N} wird die Anzahl der Nodes definiert, die sich mit dem Filesystem verbinden können. Diese kann im Nachhinein erhöht, jedoch nicht verringert werden. mit -L gibt man dem Filesystem einen Namen.
+Bevor die anderen Clients auf das Volume zugreifen können, muss ein Client dieses formatieren. 
+Mit dem \texttt{mkfs.ocfs2} Befehl kann ein Volume formatiert werden. Mit \texttt{-N} wird die Anzahl der Nodes definiert, die sich mit dem Filesystem verbinden können. Diese kann im Nachhinein erhöht, jedoch nicht verringert werden. Mit -L gibt man dem Filesystem einen Namen.
 
 \texttt{mkfs.ocfs2 /dev/sdb -N 4 -L "test123"}
 
-Falls ein schon vorhandenes Filesystem überschrieben werden muss kann dies mit dem Zusatz \texttt{-F} erwirkt werden. 
+Falls ein schon vorhandenes Filesystem überschrieben werden muss, kann dies mit dem Zusatz \texttt{-F} durchgeführt werden. 
 
 \subsubsection{Einhängen des Volumes}
 Nachdem das Dateisystem initialisiert wurde, kann das OCFS2 Volumen eingehängt werden. Dies geschieht mit dem \texttt{mount} Befehl, der mit \texttt{-t} die Art des Dateisystems beschreibt. Danach wird spezifiziert was wo eingehängt wird. \cite{ocfs2faq}

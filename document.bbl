@@ -1,0 +1,33 @@
+\begin{thebibliography}{1}
+
+\bibitem{updaterc}
+chantra.
+\newblock How-to: Managing services with update-rc.d.
+\newblock
+  \url{https://www.debuntu.org/how-to-managing-services-with-update-rc-d/},
+  Juli 2007.
+\newblock [Online; Zugriff am: \today].
+
+\bibitem{ocfs2faq}
+Oracle.
+\newblock Ocfs2 1.2 - frequently asked questions.
+\newblock
+  \url{https://oss.oracle.com/projects/ocfs2/dist/documentation/v1.2/ocfs2_faq.html},
+  2009.
+\newblock [Online; Zugriff am: \today].
+
+\bibitem{ubuntuusersfstab}
+noisefloor.
+\newblock Wiki/fstab.
+\newblock \url{https://wiki.ubuntuusers.de/fstab/}, Januar 2016.
+\newblock [Online; Zugriff am: \today].
+
+\bibitem{heartbeat}
+heartbeat.
+\newblock Preparing a cluster for ocfs2.
+\newblock
+  \url{https://docs.oracle.com/cd/E37670_01/E37355/html/ol_prepare_ocfs2.html},
+  2012.
+\newblock [Online; Zugriff am: \today].
+
+\end{thebibliography}
