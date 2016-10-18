@@ -72,6 +72,63 @@ in die Datei \texttt{/etc/fstab}, die für das automatisierte Einhängen von Par
 
 Die erste Spalte beschreibt das einzuhängende Dateisystem. Die zweite Spalte definiert den Mountpoint, dass heißt wo das Dateisystem eingehängt wird. Die dritte Spalte spezifiziert die Art des Dateisystems. Danach folgt die Option \texttt{\_netdev}, welche spezifiziert, dass es sich um einen Netzwerkspeicher handelt und deswegen so lange mit dem Einhängen gewartet wird, bis eine Netzwerkverbindung zur Verfügung steht. Die erste Zahl steht für Sicherungseinstellungen mittels \texttt{dump}. In diesem Fall bedeutet 0 keine Sicherung. Die zweite Zahl gibt an, ob und in welcher Reihenfolge die Partition beim Systemstart in die regelmäßigen Dateisystemprüfungen einbezogen wird. 0 bedeutet hier wieder keine Prüfung. \cite{ubuntuusersfstab}
 \subsection{Client Konfiguration}
+Zuerst wurden verschiedenste \texttt{OCFS2} Tools mittels
+
+\texttt{sudo apt-get install ocfs2*}
+
+installiert.\clearpage
+Nun wurde mit der Datei \texttt{/etc/ocfs2/cluster.conf} ein Cluster für 4 Nodes konfiguriert. Diese Konfiguration muss bei jeder Node (Client) vorhanden sein.
+\begin{lstlisting}[style=bash, caption=\texttt{/etc/ocfs2/cluster.conf}]
+node:
+	name = ubuntu
+	cluster = ocfs2
+	number = 1
+	ip_address = 10.0.104.10
+	ip_port = 7777
+
+node:
+	name = ubuntu2
+	cluster = ocfs2
+	number = 2
+	ip_address = 10.0.106.93
+	ip_port = 7777
+
+node:
+	name = ubuntuWeber
+	cluster = ocfs2
+	number = 3
+	ip_address = 10.0.106.90
+	ip_port = 7777
+
+node:
+	name = daniubuntu
+	cluster = ocfs2
+	number = 4
+	ip_address = 10.0.106.100
+	ip_port = 7777
+	
+cluster:
+	name = ocfs2
+	heartbeat_mode = local
+	node_count = 4
+\end{lstlisting}
+Für jede Node werden Hostname, zugehöriger Cluster, Nummerierung und notwendigen Adressdaten spezifiziert.
+
+Zusätzlich ist der \texttt{heartbeat\_mode} beim Cluster interessant. Dieser Modus definiert, wie die Nodes den gemeinsamen Zugriff auf geteilte Ressourcen koordinieren und die jeweiligen Status überwachen. Im \texttt{local} Modus starte jede Node einen Heartbeat Thread, wenn ein OCFS2 Device eingehängt wird. Werden mehrere Devices auf einer Node eingehängt bedeutet dies einen großen CPU-Overhead. Im \texttt{global} Modus müssen sich nicht die Nodes um die Heartbeat-Funktion kümmern. Der Hearbeat startet automatisch mit dem Cluster. \cite{heartbeat}
+
+Danach werden die Module des Diensts \texttt{o2cb} geladen:
+
+\texttt{sudo service o2cb load}
+
+Um diese dann auch Online zu schalten wird
+
+\texttt{sudo service o2cb online}
+
+ausgeführt. \cite{ocfs2faq}
+
+Nachdem das Dateisystem initialisiert wurde, kann das OCFS2 Volumen eingehängt werden. Dies geschieht mit dem \texttt{mount} Befehl, der mit \texttt{-t} die Art des Dateisystems beschreibt. Danach wird spezifiziert was wo eingehängt wird. \cite{ocfs2faq}
+
+\texttt{sudo mount -t ocfs2 /dev/sdb /tmp\_mount}
 \subsection{Server Konfiguration}
 \subsection{Testing}
 Zuerst wurde mit Client 1 eine Testdatei erstellt. Danach hat Client 2 die Datei geöffnet und bearbeitet.
