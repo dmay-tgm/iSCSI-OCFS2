@@ -79,7 +79,6 @@ installiert.\clearpage
 Nun wurde mit der Datei \texttt{/etc/ocfs2/cluster.conf} ein Cluster für 4 Nodes konfiguriert. Diese Konfiguration muss bei jeder Node (Client) vorhanden sein.
 \begin{lstlisting}[style=bash, caption=\texttt{/etc/ocfs2/cluster.conf}]
 node:
-<<<<<<< HEAD
 name = ubuntu
 cluster = ocfs2
 number = 1
@@ -111,39 +110,7 @@ cluster:
 name = ocfs2
 heartbeat_mode = local
 node_count = 4
-=======
-	name = ubuntu
-	cluster = ocfs2
-	number = 1
-	ip_address = 10.0.104.10
-	ip_port = 7777
 
-node:
-	name = ubuntu2
-	cluster = ocfs2
-	number = 2
-	ip_address = 10.0.106.93
-	ip_port = 7777
-
-node:
-	name = ubuntuWeber
-	cluster = ocfs2
-	number = 3
-	ip_address = 10.0.106.90
-	ip_port = 7777
-
-node:
-	name = daniubuntu
-	cluster = ocfs2
-	number = 4
-	ip_address = 10.0.106.100
-	ip_port = 7777
-	
-cluster:
-	name = ocfs2
-	heartbeat_mode = local
-	node_count = 4
->>>>>>> origin/master
 \end{lstlisting}
 Für jede Node werden Hostname, zugehöriger Cluster, Nummerierung und notwendigen Adressdaten spezifiziert.
 
