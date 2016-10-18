@@ -3,6 +3,37 @@
 \section{Ergebnisse}
 \subsection{Theorie}
 \subsection{iSCSI Initiator}
+Da openfiler bereits zur Verfügung gestellt wurde, musste keine NAS Appliance installiert und konfiguriert werden.
+
+Die restliche Vorgehensweise entspricht genau der Aufgabenstellung. Zuerst wurde das Ubuntu Package \texttt{open-iscsi} installiert. Nachdem in der Datei \texttt{/etc/iscsi/iscsi.conf} die Authentifizierungsmethode auf CHAP (Challenge Handshake Authentication Protocol) gesetzt und die Anmeldedaten konfiguriert wurden, konnte auch schon die Liste der verfügbaren Targets ausgegeben werden.
+
+\begin{lstlisting}[style=bash, caption=Verfügbare Targets]
+daniel@daniubuntu:~$ sudo iscsiadm -m discovery -t sendtargets -p 10.0.106.81
+10.0.106.81:3260,1 iqn.2006-01.com.openfiler:tsn.96b8938ac933
+10.0.106.81:3260,1 iqn.2016-09.syt:tsn.data1
+10.0.106.81:3260,1 iqn.2016-09.syt.tgm.data0
+10.0.106.81:3260,1 iqn.2006-01.com.openfiler:tsn.465272b2cbcc
+10.0.106.81:3260,1 iqn.2016-09.syt:tsn.data0
+\end{lstlisting}
+Die Option \texttt{-m} legt den Operation-Mode als \texttt{discovery} fest. Im \texttt{discovery} Modus wird mit \texttt{-t} der Discovery-Typ auf \texttt{sendtargets} gesetzt. Mit \texttt{-p} wird die Zieladresse festgelegt.
+
+Danach wurde das \texttt{data0} Target als ``lokale'' Festplatte registriert:
+\begin{lstlisting}[style=bash, caption=Target ``lokal'' registrieren]
+daniel@daniubuntu:~$ sudo iscsiadm -m node -T iqn.2016-09.syt:tsn.data0 -p 10.0.106.81 --login
+Logging in to [iface: default, target: iqn.2016-09.syt:tsn.data0, portal: 10.0.106.81,3260] (multiple)
+Login to [iface: default, target: iqn.2016-09.syt:tsn.data0, portal: 10.0.106.81,3260] successful.
+\end{lstlisting}
+Hier wurde der Modus auf \texttt{node} geändert und mit \texttt{-T} wird der Targetname angegeben. Mit \texttt{-{}-login} wird spezifiziert, dass man sich im \texttt{node} Modus beim angegebenen Target einloggen möchte.
+
+In der Kernel Console sieht man nun das neue Block Device:
+\begin{lstlisting}[style=bash, caption=neues Block Device]
+[ 1008.354886] sd 33:0:0:0: Attached scsi generic sg2 type 0
+[ 1008.369151] sd 33:0:0:0: [sdb] 1048576 512-byte logical blocks: (537 MB/512 MiB)
+[ 1008.418559] sd 33:0:0:0: [sdb] Write Protect is off
+[ 1008.418605] sd 33:0:0:0: [sdb] Mode Sense: 77 00 00 08
+[ 1008.430186] sd 33:0:0:0: [sdb] Write cache: disabled, read cache: disabled, doesn't support DPO or FUA
+\end{lstlisting}
+
 \subsection{Client Konfiguration}
 \subsection{Server Konfiguration}
 \subsection{Testing}
