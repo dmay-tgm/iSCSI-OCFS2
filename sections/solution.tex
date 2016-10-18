@@ -116,7 +116,7 @@ node_count = 4
 \end{lstlisting}
 Für jede Node werden Hostname, zugehöriger Cluster, Nummerierung und notwendigen Adressdaten spezifiziert.
 
-Zusätzlich ist der \texttt{heartbeat\_mode} beim Cluster interessant. Dieser Modus definiert, wie die Nodes den gemeinsamen Zugriff auf geteilte Ressourcen koordinieren und die jeweiligen Status überwachen. Im \texttt{local} Modus starte jede Node einen Heartbeat Thread, wenn ein OCFS2 Device eingehängt wird. Werden mehrere Devices auf einer Node eingehängt bedeutet dies einen großen CPU-Overhead. Im \texttt{global} Modus müssen sich nicht die Nodes um die Heartbeat-Funktion kümmern. Der Hearbeat startet automatisch mit dem Cluster. \cite{heartbeat}
+Zusätzlich ist der \texttt{heartbeat\_mode} beim Cluster interessant. Dieser Modus definiert, wie die Nodes den gemeinsamen Zugriff auf geteilte Ressourcen koordinieren und die jeweiligen Status überwachen. Im \texttt{local} Modus starte jede Node einen Heartbeat Thread, wenn ein OCFS2 Device eingehängt wird. Werden mehrere Devices auf einer Node eingehängt bedeutet dies einen großen CPU-Overhead. Weiters kann auch ein Netzwerk, sowie I/O Overhead enstehen. Dies passiert wenn viele Nodes oder sogar mehrere Cluster vorhanden sind.   Im \texttt{global} Modus müssen sich nicht die Nodes um die Heartbeat-Funktion kümmern. Der Hearbeat startet automatisch mit dem Cluster. \cite{heartbeat}
 \subsubsection{Starten des Clusters}
 Danach werden die Module des Diensts \texttt{o2cb} geladen:
 
@@ -128,11 +128,18 @@ Um diese dann auch Online zu schalten wird
 
 ausgeführt. \cite{ocfs2faq}
 \subsubsection{Formatieren des Volumes}
+Bevor die anderen Clients auf das Volume zugreifen können muss ein Client dieses formatieren. 
+mit dem \texttt{mkfs.ocfs2} Befehl kann ein Volume formatiert werden. mit \texttt{-N} wird die Anzahl der Nodes definiert, die sich mit dem Filesystem verbinden können. Diese kann im Nachhinein erhöht, jedoch nicht verringert werden. mit -L gibt man dem Filesystem einen Namen.
+
+\texttt{mkfs.ocfs2 /dev/sdb -N 4 -L "test123"}
+
+Falls ein schon vorhandenes Filesystem überschrieben werden muss kann dies mit dem Zusatz \texttt{-F} erwirkt werden. 
 
 \subsubsection{Einhängen des Volumes}
 Nachdem das Dateisystem initialisiert wurde, kann das OCFS2 Volumen eingehängt werden. Dies geschieht mit dem \texttt{mount} Befehl, der mit \texttt{-t} die Art des Dateisystems beschreibt. Danach wird spezifiziert was wo eingehängt wird. \cite{ocfs2faq}
 
 \texttt{sudo mount -t ocfs2 /dev/sdb /tmp\_mount}
+
 \subsection{Testing}
 Zuerst wurde mit Client 1 eine Testdatei erstellt. Danach hat Client 2 die Datei geöffnet und bearbeitet.
 \begin{figure}[!h]
@@ -153,3 +160,4 @@ Versucht nun Client 1 ebenfalls die Datei zu editieren erhält man folgende Fehl
 \end{figure}\
 
 Im Endeffekt ist immer die letzte Aktion gültig und überschreibt die vorherigen Änderungen.
+Dies ist jedoch nur möglich, da nano ein Journal führt und selbst die Datei lockt. Würde eine andere Applikation, welche diese Funktionalitäten nicht implementiert, eine Datei gleichzeitig von 2 verschiedenen Clients bearbeiten, würde diese korrupt werden. 
