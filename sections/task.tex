@@ -1,19 +1,22 @@
 %!TEX root=../document.tex
 
 \section{Einführung}
-Dieses Protokoll-Template soll helfen den Laborübungsteil entsprechend dokumentieren zu können. Diese Vorlage ist in \LaTeX  verfasst.
+Installieren und Konfigurieren Sie eine NAS Appliance welche Block Devices (Festplatten) über iSCSI im Netzwerk freigeben kann (z.B. openfiler1, FreeNAS) falls diese nicht bereits für die Übung zur Verfügung gestellt wurde (je nach Gruppe/Zeitplan).
 
 \subsection{Ziele}
-Hier werden die zu erwerbenden Kompetenzen und deren Deskriptoren beschrieben. Diese werden von den unterweisenden Lehrkräften vorgestellt.
 
-Dies kann natürlich auch durch eine Aufzählung erfolgen:
 
 \begin{itemize}
-	\item \textbf{Lorem ipsum:} dolor sit amet, consetetur sadipscing elitr
-	\item sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat
-	\item ut labore et dolore magna aliquyam erat, sed diam voluptua
+	\item Das iSCSI Target soll automatisch beim booten des Clients/Initiators verbunden werden
+	\item Installieren Sie ocfs2 auf mindestens 3 Computern (die auf das Block-Devices per iSCSI verbunden sind)
+	\item Konfigurieren Sie einen OCFS2 Cluster für diese 3 Computer (Nodes), z.B. über die Datei /etc/ocfs2/cluster.conf
+	\item Formatieren Sie das gemeinsame iSCSI Block Device im OCFS2 Dateisystem (mkfs.ocfs2) - dies muss nur auf einem Computer durchgeführt werden, da es sich ja um ein Cluster-Dateisystem handelt
+	\item Überprüfen Sie, wie sich das Dateisystem bei gemeinsamen Zugriff auf eine Datei verhält
+	\item Dokumentieren Sie Ihre Durchführung Ihre Ergebnisse
 \end{itemize}
+Die Arbeit ist in Gruppen zu 3-4 Teilnehmern möglich. Jeder Teilnehmer muss den iSCSI-Initiator und OCFS2 konfiguriert haben
 
+Abgabe des Protokolls (1x/Gruppe) als pdf.
 
 \subsection{Voraussetzungen}
 Welche Informationen sind notwendig um die Laborübung reibungslos durchführen zu können? Hier werden alle Requirements der Lehrkraft detailliert beschrieben und mit Quellen untermauert.
