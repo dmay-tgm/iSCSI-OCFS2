@@ -2,6 +2,21 @@
 
 \section{Ergebnisse}
 \subsection{Theorie}
+\subsubsection{iSCSI}
+\textbf{Überblick:}\\
+\textit{Internet Small Computer Systems Interface} ist eine Erweiterung des \textit{SCSI} Standards. Es erlaubt Clients Daten über TCP in ein \textit{Storage Area Network} (NAS) zu speichern, als wäre es direkt mit der Festplatte verbunden. Damit ist es möglich, mehrere Festplatten von unterschiedlichen Standorten zu einer virtuellen Festplatte zusammenzufassen, welche für mehreren Clients erreichbar ist. Es lassen sich große Distanzen überwinden, da sich iSCSI zwischen Router, host-to-switch, storage-array-to-storage-array implementieren lässt. 
+
+\textbf{Funktionsweise:}\\
+iSCSI überträgt block-level Data zwischen iSCSI initiator und den Festplatten, auch iSCSI targets genannt. Der iSCSI initiator kapselt die SCSI Kommandos und Daten in Pakete für den TCP/IP Layer. Diese Pakete werden dann über das Netzwerk mittels point-to-point Verbindung übertragen. Das iSCSI Protokoll trennt dann die SCSI Kommandos von den Daten, so dass es für den Client aussieht, als wäre er direkt lokal mit der Festplatte verbunden.
+
+
+\textbf{Vorteile:}\\
+Der größte Vorteil von iSCSI gegenüber anderen Möglichkeiten, wie FCIP(Fiber Channel over IP), ist, dass keine teuren und komplexen Switches bzw. Router wie für FCIP benötigt werden. Das macht es billiger und einfacher zu verwalten. Weiteres ist iSCSI Variante auch weit flexibler als andere Möglichkeiten. 
+\\
+
+\subsubsection{OCFS2}
+\textit{Oracle Cluster File System} ist ein verteiltes Dateisystem entwickelt von Oracle Corporation veröffentlicht unter der GNU General Public License. Das Dateisystem ist also eine open source Variante, welche leistungsstarke Performance und hohe Verfügbarkeit bietet. Es verwendet die gleiche Semantik wie lokale Dateisysteme und lässt sich mit jeder beliebigen Anwendung verwenden. 
+
 \subsection{iSCSI Initiator}
 Da openfiler bereits zur Verfügung gestellt wurde, musste keine NAS Appliance installiert und konfiguriert werden.
 
